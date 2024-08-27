@@ -1,0 +1,45 @@
+def FindOverwhelmingWinner(votes):
+        candidate = FindCandidate(votes)
+        count = 0
+    
+        for title in votes:
+            if title == candidate:
+                count = count + 1
+    
+        if count > len(votes) / 2:
+            return candidate
+        else:
+            return None
+
+def FindCandidate(votes):
+        if len(votes) == 0:
+            return None
+        if len(votes) == 1:
+            return votes[0]
+    
+        group_size = len(votes) // 2
+        
+        group1 = votes[0:group_size]
+        group2 = votes[group_size:]
+    
+        candidate1 = FindCandidate(group1)
+        candidate2 = FindCandidate(group2)
+
+        if candidate1 == candidate2:
+            return candidate1
+    
+        count1 = sum(1 for title in votes if title == candidate1)
+        count2 = sum(1 for title in votes if title == candidate2)
+
+        return candidate1 if count1 > count2 else candidate2
+        
+Mylist = ['A','A','A','A','A','A','A','A','A','A','B','C','D','E','B','C','D','E']
+print(len(Mylist))
+print (FindCandidate(Mylist))
+print (FindOverwhelmingWinner(Mylist))
+
+MyMylistNotWin = ['A','A','A','A','A','A','B','C','D','E','B','C','D','E']
+print(len(MyMylistNotWin))
+print (FindCandidate(MyMylistNotWin))
+print (FindOverwhelmingWinner(MyMylistNotWin))
+
