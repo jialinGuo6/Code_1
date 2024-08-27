@@ -1,0 +1,118 @@
+#######################################################################################################
+# CS4403 Fall 2023         
+# Jialin Guo #3687827
+#######################################################################################################
+# Assignment #1: Write a LOC counter
+# part2 prediction:  4h, 40 lines 
+# actual time spent:  about 2h:50min, 25 lines(part2 line - part1 line = 66 - 41= 25 lines)
+#                     25 lines( add: loc_method method & call and print loc_method = 18 lines)
+#                             ( modify format: 25 - 18 = 7 lines)
+# To make code easier to write, view and call methods, change the format and add the main method.
+#######################################################################################################
+# Summary: Assignment#1 -- prediction : 8h, 100 lines
+#                       -- actual     : 7h:30min, 66lines
+#######################################################################################################
+# Count source code :
+# remove : space lines -- nothing code and information
+#          comment lines -- not code, just information
+#          import lines -- I do not what to count. Because it just use to import some modules. 
+#                       -- And sometimes people add a lot of imports even if they don't use them.
+# Add : extra variable lines -- each define variables have own line.
+#                            -- Some multivariable lines(i.e. no1, no2, no3, no4 = 1,2,3,4 ).
+#                            -- Should be consider as 4 lines not 1 line.(extra lines = 4-1 = 3).
+# function / method : Python every method begin with keyword 'def', 
+#                                           end with keyword 'return'.
+#######################################################################################################
+import ast
+
+def get_lines(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+    return lines
+
+def loc_counter(lines):
+    LOC = 0
+    str_line= "".join(lines)
+    line_var_nums = multi_vars(str_line)
+    print('LOC add 5 more vars line',line_var_nums)
+    for line in lines:
+        #The strip() method removes leading, and trailing whitespaces. 
+        line = line.strip()  
+        # no comment and import module lines
+        if line and not line.startswith('#') and not line.startswith('import'):
+            LOC += 1
+    LOC=LOC + line_var_nums  
+    
+    return LOC
+
+def loc_method(lines):   
+    LOC_method=0
+    method_num=0
+    for line in lines:
+        # The rstrip() method removes trailing whitespaces.
+        line = line.rstrip()  
+        # Method begin with keyword 'def'
+        if line and line.startswith('def'):
+            print(line, end=' ')
+            method_num += 1
+            LOC_method += 1
+        if line and line.startswith('    '):
+            LOC_method += 1
+        # Method end with keyword 'return'
+        if 'return' in line:
+            print('lines =', LOC_method) 
+            LOC_method = 0
+        
+    return method_num    
+
+def multi_vars(str_line):
+    var_num = 0
+    multi_lines = 0
+    tree = ast.parse(str_line)
+    variables_on_lines = {}
+    
+    # search all AST nodes
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            # get lines number
+            line_number = node.lineno
+    
+            # get variables name
+            variable_names = []
+            
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    variable_names.append(target.id)
+                elif isinstance(target, ast.Tuple):
+                    variable_names.extend(elem.id for elem in target.elts if isinstance(elem, ast.Name))
+    
+            # add variable name to the line number list 
+            if line_number not in variables_on_lines:
+                variables_on_lines[line_number] = []
+            variables_on_lines[line_number].extend(variable_names)
+    
+    # Show multiple variables on the same line
+    print('\nThis the multivariable lines')
+    for line_number, variables in variables_on_lines.items():
+        if len(variables) > 1:
+            var_num = var_num + len(variables)
+            multi_lines +=1
+            print('Line', line_number,'variables name:',', '.join(variables))
+    print(multi_lines,'line(s) have totally', var_num,'variables') 
+    print('variables number - lines number is the extra lines =', var_num-multi_lines) 
+    
+    return var_num-multi_lines      
+
+if __name__ == "__main__":
+    filename = 'example.py'
+    
+    lines = get_lines(filename)
+    print( 'Totally, the file',filename, 'havs lines =>',len(lines))
+
+    LOC = loc_counter(lines)
+    print('\nThe total code lines - the space & comment & import lines + extra variable lines')
+    print("LOC counter:",LOC)
+    
+    print('\nThe functions:')   
+    method_num = loc_method(lines)
+    print('The python file has',method_num,'method(s)')
