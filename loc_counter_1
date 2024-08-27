@@ -1,0 +1,78 @@
+#######################################################################################################
+# CS4403 Fall 2023         
+# Jialin Guo #3687827
+#######################################################################################################
+# Assignment #1: Write a LOC counter
+# part1 prediction:  4h, 60 lines 
+# actual time spent:  about 4h:40min, 41 lines
+#######################################################################################################
+# Count source code :
+# remove : space lines -- nothing code and information
+#          comment lines -- not code, just information
+#          import lines -- I do not want to count. Because it just use to import some modules. 
+#                       -- And sometimes people add a lot of imports even if they don't use them.
+# Add : extra variable lines -- each define variables have own line.
+#                            -- Some multivariable lines(i.e. no1, no2, no3, no4 = 1,2,3,4 ).
+#                            -- Should be consider as 4 lines not 1 line.(extra lines = 4-1 = 3).
+#######################################################################################################
+
+import ast
+ 
+def loc_counter(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+    print( 'Totally, the file',filename, 'havs lines =>',len(lines))
+    
+    LOC = 0
+    str_line= "".join(lines)
+    var_num = 0
+    multi_lines = 0
+    tree = ast.parse(str_line)
+    variables_on_lines = {}
+    
+    # search all AST nodes
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            # get lines number
+            line_number = node.lineno
+    
+            # get variables name
+            variable_names = []
+            
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    variable_names.append(target.id)
+                elif isinstance(target, ast.Tuple):
+                    variable_names.extend(elem.id for elem in target.elts if isinstance(elem, ast.Name))
+    
+            # add variable name to the line number list 
+            if line_number not in variables_on_lines:
+                variables_on_lines[line_number] = []
+            variables_on_lines[line_number].extend(variable_names)
+    
+    # Show multiple variables on the same line
+    print('\nThis the multivariable lines')
+    for line_number, variables in variables_on_lines.items():
+        if len(variables) > 1:
+            var_num = var_num + len(variables)
+            multi_lines +=1
+            print('Line', line_number,'variables name:',', '.join(variables))
+    print(multi_lines,'line(s) have totally', var_num,'variables') 
+    print('variables number - lines number is the extra lines =', var_num-multi_lines)
+    
+    # Count total code lines which remove the space & comment & import lines
+    for line in lines:
+        #The strip() method removes any leading, and trailing whitespaces.
+        line = line.strip()   
+        # remove lines as needed
+        if line and not line.startswith('#') and not line.startswith('import'):
+            LOC += 1
+    # Recalculate the number of lines        
+    LOC=LOC + (var_num-multi_lines)
+    return LOC
+
+filename = 'example.py'
+LOC = loc_counter(filename)
+
+print('\nThe total code lines - the space & comment & import lines + extra variable lines')
+print("LOC counter:",LOC)
