@@ -1,0 +1,20 @@
+def findOptimalResources(arr, k):
+    # Write your code here
+    arr.sort(reverse=True)
+    arr_set = set()
+    Sum_subarray = 0
+    
+    
+    for i in range(len(arr)):
+        if arr[i] not in arr_set:
+            arr_set.add(arr[i])
+            Sum_subarray = arr[i] + Sum_subarray
+            print(arr_set)
+        if len(arr_set) == 3 : 
+            break
+        
+    return Sum_subarray 
+    
+k = 3
+val = [1, 2, 7, 7, 4, 3, 6]
+print(findOptimalResources(val,k))
